@@ -1,11 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-	<div class="row top-menu">
-		<div class="col-md-10"></div>
-		<div class="col-md-2 text-right">
-					</div>
-	</div>
 	<div class="row divider blue">
 		<div class="col-md-12"></div>
 	</div>
@@ -41,11 +36,11 @@
 		<div class="col-md-1"></div>
 	</div>
 	{% for author in authors %}
-		<a href = "{{url_for('showAuthors', authors_id=authors.id)}}">
+		<a href = "{{url_for('showBooks', authors_id=author.id)}}">
 			<div class="row">
 				<div class="col-md-1"></div>
 					<div class="col-md-10 authors-list">
-						<h3>{{authors.name}}</h3>
+						<h3>{{author.name}}</h3>
 					</div>
 				<div class="col-md-1"></div>
 			</div>

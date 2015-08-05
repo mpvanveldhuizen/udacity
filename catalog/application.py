@@ -171,7 +171,7 @@ def authorsJSON():
     return jsonify(authors=[a.serialize for a in authors])
 
 
-# Show all authorss
+# Show all authors
 @app.route('/')
 @app.route('/authors/')
 def showAuthors():
