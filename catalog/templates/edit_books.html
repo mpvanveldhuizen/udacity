@@ -1,42 +1,59 @@
+<!--
+Matt Van Veldhuizen
+08/06/2015
+Udacity Full Stack Web Developer Nanodegree
+Implementation of a Catalog based Website
+providing a list of Authors and Books
+edit_books.html
+This html code was based of the implementation
+by the teachers at Udacity.
+To be used with application.py
+-->
+
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
 
-	<div class="row divider green">
-		<div class="col-md-12"></div>
+<!-- Change Page Title -->
+<div class="row divider green">
+	<div class="col-md-12"></div>
+</div>
+<div class="row banner main">
+	<div class="col-md-11 col-md-offset-1 padding-none">
+		<h1>Edit Book</h1>
 	</div>
-	<div class="row banner main">
-		<div class="col-md-11 col-md-offset-1 padding-none">
-			<h1>Edit Book</h1>
-		</div>
+</div>
+
+<!-- Display Content -->
+<div class="row">
+	<div class="col-md-6 col-md-offset-1 padding-top">
+		<form action="#" method = "post">
+			<div class="form-group">
+				<label for="name">Name:</label>
+				<input type ="text" maxlength="100" class="form-control" name="name" value="{{books.name }}">
+
+				<label for="cover_url">Cover URL:</label>
+				<textarea class="form-control" maxlength="250" rows="3" name="cover_url">{{books.cover_url}}</textarea>
+
+				<label for="isbn">ISBN:</label>
+				<textarea class="form-control" maxlength="250" rows="3" name="isbn">{{books.isbn}}</textarea>
+
+				<label for="description">Description:</label>
+				<textarea class="form-control" maxlength="250" rows="3" name="description">{{books.description}}</textarea>
+
+				<label for="published_date">ISBN:</label>
+				<textarea class="form-control" maxlength="250" rows="3" name="published_date">{{books.published_date}}</textarea>
+
+				<button type="submit" class="btn btn-default" id="submit" type="submit">
+				<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>Save</button>
+				
+				<a href = "{{url_for('showAuthors')}}"">
+					<button class="btn btn-default delete">
+					<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+				</a>
+			</div>
+		</form>
 	</div>
-	<div class="row">
-		<div class="col-md-6 col-md-offset-1 padding-top">
-			<form action="#" method = "post">
-				<div class="form-group">
-					<label for="name">Name:</label>
-					<input type ="text" maxlength="100" class="form-control" name="name" value="{{books.name }}">
-
-					<label for="cover_url">Cover URL:</label>
-					<textarea class="form-control" maxlength="250" rows="3" name="cover_url">{{books.cover_url}}</textarea>
-
-					<label for="isbn">ISBN:</label>
-					<textarea class="form-control" maxlength="250" rows="3" name="isbn">{{books.isbn}}</textarea>
-
-					<label for="description">Description:</label>
-					<textarea class="form-control" maxlength="250" rows="3" name="description">{{books.description}}</textarea>
-
-					<label for="published_date">ISBN:</label>
-					<textarea class="form-control" maxlength="250" rows="3" name="published_date">{{books.published_date}}</textarea>
-
-					<button type="submit" class="btn btn-default" id="submit" type="submit">
-					<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>Save</button>
-					<a href = '{{url_for('showAuthors')}}'>
-						<button class="btn btn-default delete">
-						<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
-					</a>
-				</div>
-			</form>
-		</div>
-	</div>
+</div>
+{% include "footer.html" %}
 {% endblock %}

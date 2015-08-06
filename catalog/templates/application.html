@@ -1,17 +1,31 @@
+<!--
+Matt Van Veldhuizen
+08/06/2015
+Udacity Full Stack Web Developer Nanodegree
+Implementation of a Catalog based Website
+providing a list of Authors and Books
+application.html
+This html code was based of the implementation
+by the teachers at Udacity.
+To be used with application.py
+-->
+
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
 
-	<div class="row divider blue">
-		<div class="col-md-12"></div>
+<!-- Change Page Title -->
+<div class="row divider blue">
+	<div class="col-md-12"></div>
+</div>
+<div class="row banner main">
+	<div class="col-md-1"></div>
+	<div class="col-md-11 padding-none">
+		<h1>Authors</h1>
 	</div>
-	<div class="row banner main">
-		<div class="col-md-1"></div>
-		<div class="col-md-11 padding-none">
-			<h1>Authors</h1>
-		</div>
-	</div>
+</div>
 
+<!-- Display any messages -->
 <div class = 'flash'>
 {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -25,26 +39,28 @@
 
 </div>
 
-	<div class="row padding-top padding-bottom">
-		<div class="col-md-1"></div>
-		<div class="col-md-10 padding-none">
-			<a href="{{url_for('newAuthors')}}">
-				<button class="btn btn-default" id="new-authors">
-					<span class="glyphicon glyphicons-book" aria-hidden="true"></span>Add Author
-				</button>
-			</a>
-		</div>
-		<div class="col-md-1"></div>
-	</div>
-	{% for author in authors %}
-		<a href = "{{url_for('showBooks', authors_id=author.id)}}">
-			<div class="row">
-				<div class="col-md-1"></div>
-					<div class="col-md-10 authors-list">
-						<h3>{{author.name}}</h3>
-					</div>
-				<div class="col-md-1"></div>
-			</div>
+<!-- Display content -->
+<div class="row padding-top padding-bottom">
+	<div class="col-md-1"></div>
+	<div class="col-md-10 padding-none">
+		<a href="{{url_for('newAuthors')}}">
+			<button class="btn btn-default" id="new-authors">
+				<span class="glyphicon glyphicons-book" aria-hidden="true"></span>Add Author
+			</button>
 		</a>
-	{% endfor %}
+	</div>
+	<div class="col-md-1"></div>
+</div>
+{% for author in authors %}
+	<a href = "{{url_for('showBooks', authors_id=author.id)}}">
+		<div class="row">
+			<div class="col-md-1"></div>
+				<div class="col-md-10 authors-list">
+					<h3>{{author.name}}</h3>
+				</div>
+			<div class="col-md-1"></div>
+		</div>
+	</a>
+{% endfor %}
+{% include "footer.html" %}
 {% endblock %}

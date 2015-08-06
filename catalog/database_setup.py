@@ -1,3 +1,14 @@
+# Matt Van Veldhuizen
+# 08/06/2015
+# Udacity Full Stack Web Developer Nanodegree
+# Implementation of a Catalog based Website
+# providing a list of Authors and Books
+# database_setup.py
+# This Python code was based of the implementation
+# by the teachers at Udacity.
+# To be used with addentries.sql and application.py
+
+
 from sqlalchemy import Column, ForeignKey, Integer, String, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -5,6 +16,7 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+# Table user to hold users who log in to edit entries
 class User(Base):
     __tablename__ = 'user'
 
@@ -13,6 +25,7 @@ class User(Base):
     email = Column(String(250), nullable=False)
     picture = Column(String(250))
 
+# Table authors to hold the list of authors
 class Authors(Base):
     __tablename__ = 'authors'
 
@@ -29,6 +42,7 @@ class Authors(Base):
 			'id': self.id,
         }
 
+# Table books to hold the list of books for each author
 class Books(Base):
     __tablename__ = 'books'
 

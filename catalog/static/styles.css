@@ -1,3 +1,16 @@
+/*
+Matt Van Veldhuizen
+08/06/2015
+Udacity Full Stack Web Developer Nanodegree
+Implementation of a Catalog based Website
+providing a list of Authors and Books
+styles.css
+This CSS code was based of the implementation
+by the teachers at Udacity.
+To be used with application.py and all the html
+files located in the templates folder
+*/
+
 * {
 	font-family: "Helvetica Neue Bold", Roboto, Helvetica, Arial, sans-serif;
 	font-weight: 700;

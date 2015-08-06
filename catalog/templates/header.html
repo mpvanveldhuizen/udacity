@@ -1,9 +1,23 @@
+<!--
+Matt Van Veldhuizen
+08/06/2015
+Udacity Full Stack Web Developer Nanodegree
+Implementation of a Catalog based Website
+providing a list of Authors and Books
+header.html
+This html code was based of the implementation
+by the teachers at Udacity.
+To be used with application.py
+-->
+
+<!-- Header for All Pages -->
 <div class="row top-menu">
 	<div class="col-md-6">
 		<a href="{{url_for('showAuthors')}}">
 			<span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Authors
 		</a>
 	</div>
+
 	<div class="col-md-6 text-right">
 	{% if username != null %}
 		<p>Hello {{username}}!<p>
