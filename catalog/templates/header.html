@@ -5,8 +5,18 @@
 		</a>
 	</div>
 	<div class="col-md-6 text-right">
-		<a href = '{{url_for('showLogin')}}'>
-		<span aria-hidden="true"></span>Login</button>
+	{% if username != null %}
+		<p>Hello {{username}}!<p>
+		<br/>
+		<a href = "/disconnect">
+			<button type="submit" class="btn btn-default" id="submit" type="submit">
+				<span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>Log Out</button>
 		</a>
+	{% else %}
+		<a href = "{{url_for('showLogin')}}">
+			<button type="submit" class="btn btn-default" id="submit" type="submit">
+			<span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>Login</button>
+		</a>
+	{% endif %}
 	</div>
 </div>
