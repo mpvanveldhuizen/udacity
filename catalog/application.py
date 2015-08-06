@@ -214,7 +214,7 @@ def newAuthors():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newAuthors = Authors(name=request.form['name'])
+        newAuthors = Authors(name=request.form['name'], user_id=login_session['user_id'])
         session.add(newAuthors)
         flash('New Author %s Successfully Created' % newAuthors.name)
         session.commit()
@@ -228,7 +228,7 @@ def editAuthors(authors_id):
 	editedAuthors = session.query(Authors).filter_by(id=authors_id).one()
 	if 'username' not in login_session:
 		return redirect('/login')
-	if editAuthors.user_id != login_session['user_id']:
+	if editedAuthors.user_id != login_session['user_id']:
 		return "<script>function myFunction() {alert('You are not authorized to edit this Author. Please create your own author in order to edit.');}</script><body onload='myFunction()''>"
 	if request.method == 'POST':
 		if request.form['name']:
@@ -275,7 +275,7 @@ def newBook(authors_id):
 	if request.method == 'POST':
 		newBook = Books(title=request.form['title'], cover_url=request.form['cover_url'],
 			isbn=request.form['isbn'], description=request.form['description'],
-			published_date=request.form['published_date'], authors_id=authors_id)
+			published_date=request.form['published_date'], authors_id=authors_id, user_id=authors.user_id)
 		session.add(newBook)
 		session.commit()
 		flash('New Book %s Successfully Created' % (newBook.title))
@@ -340,10 +340,10 @@ def disconnect():
         del login_session['picture']
         del login_session['user_id']
         flash("You have successfully been logged out.")
-        return redirect(url_for('showRestaurants'))
+        return redirect(url_for('showAuthors'))
     else:
         flash("You were not logged in")
-        return redirect(url_for('showRestaurants'))
+        return redirect(url_for('showAuthors'))
 		
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
