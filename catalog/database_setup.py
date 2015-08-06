@@ -5,27 +5,28 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
-class Users(Base):
-    __tablename__ = 'users'
+class User(Base):
+    __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    access_token = Column(String(200))
-
-    def __init__(self, access_token):
-        self.access_token = access_token
+    name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False)
+    picture = Column(String(250))
 
 class Authors(Base):
     __tablename__ = 'authors'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):
         """ JSON serializer method """
         return {
             'name': self.name,
-	    'id': self.id,
+			'id': self.id,
         }
 
 class Books(Base):
@@ -39,8 +40,8 @@ class Books(Base):
     published_date = Column(String(9))
     authors_id = Column(Integer, ForeignKey('authors.id'))
     authors = relationship(Authors)
-    adder_id = Column(Integer, ForeignKey('users.id'))
-    adder = relationship(Users)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
     @property
     def serialize(self):

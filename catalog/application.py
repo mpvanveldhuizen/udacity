@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Authors, Books
+from database_setup import Base, Authors, Books, User
 from flask import session as login_session
 import random
 from oauth2client.client import flow_from_clientsecrets
@@ -30,7 +30,7 @@ session = DBSession()
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-	for x in xrange(32))
+                    for x in xrange(32))
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
@@ -59,7 +59,8 @@ def gconnect():
 
     # Check that the access token is valid.
     access_token = credentials.access_token
-    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token)
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
+           % access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.
@@ -77,7 +78,8 @@ def gconnect():
 
     # Verify that the access token is valid for this app.
     if result['issued_to'] != CLIENT_ID:
-        response = make_response(json.dumps("Token's client ID does not match app's."), 401)
+        response = make_response(
+            json.dumps("Token's client ID does not match app's."), 401)
         print "Token's client ID does not match app's."
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -85,12 +87,13 @@ def gconnect():
     stored_credentials = login_session.get('credentials')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_credentials is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),200)
+        response = make_response(json.dumps('Current user is already connected.'),
+                                 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
     # Store the access token in the session for later use.
-    login_session['credentials'] = credentials.access_token
+    login_session['credentials'] = credentials
     login_session['gplus_id'] = gplus_id
 
     # Get user info
@@ -104,6 +107,12 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
+    # see if user exists, if it doesn't make a new one
+    user_id = getUserID(data["email"])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+
     output = ''
     output += '<h1>Welcome, '
     output += login_session['username']
@@ -115,9 +124,31 @@ def gconnect():
     print "done!"
     return output
 
-    # DISCONNECT - Revoke a current user's token and reset their login_session
+# User Helper Functions
 
 
+def createUser(login_session):
+    newUser = User(name=login_session['username'], email=login_session[
+                   'email'], picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
+# DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
         # Only disconnect a connected user.
@@ -149,7 +180,6 @@ def gdisconnect():
             json.dumps('Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
-
 
 # JSON APIs to view Authors Information
 @app.route('/authors/<int:authors_id>/books/JSON')
@@ -195,32 +225,35 @@ def newAuthors():
 # Edit a authors
 @app.route('/authors/<int:authors_id>/edit/', methods=['GET', 'POST'])
 def editAuthors(authors_id):
-    if 'username' not in login_session:
-        return redirect('/login')
-    editedAuthors = session.query(
-        Authors).filter_by(id=authors_id).one()
-    if request.method == 'POST':
-        if request.form['name']:
-            editedAuthors.name = request.form['name']
-            flash('Author Successfully Edited %s' % editedAuthors.name)
-            return redirect(url_for('showAuthors'))
-    else:
-        return render_template('edit_authors.html', authors=editedAuthors)
+	editedAuthors = session.query(Authors).filter_by(id=authors_id).one()
+	if 'username' not in login_session:
+		return redirect('/login')
+	if editAuthors.user_id != login_session['user_id']:
+		return "<script>function myFunction() {alert('You are not authorized to edit this Author. Please create your own author in order to edit.');}</script><body onload='myFunction()''>"
+	if request.method == 'POST':
+		if request.form['name']:
+			editedAuthors.name = request.form['name']
+			flash('Author Successfully Edited %s' % editedAuthors.name)
+			return redirect(url_for('showAuthors'))
+	else:
+		return render_template('edit_authors.html', authors=editedAuthors)
 
 
 # Delete a authors
 @app.route('/authors/<int:authors_id>/delete/', methods=['GET', 'POST'])
 def deleteAuthor(authors_id):
-    if 'username' not in login_session:
-        return redirect('/login')
-    authorsToDelete = session.query(Authors).filter_by(id=authors_id).one()
-    if request.method == 'POST':
-        session.delete(authorsToDelete)
-        flash('%s Successfully Deleted' % authorsToDelete.name)
-        session.commit()
-        return redirect(url_for('showAuthors', authors_id=authors_id))
-    else:
-        return render_template('delete_authors.html', authors=authorsToDelete)
+	authorsToDelete = session.query(Authors).filter_by(id=authors_id).one()
+	if 'username' not in login_session:
+		return redirect('/login')
+	if authorsToDelete.user_id != login_session['user_id']:
+		return "<script>function myFunction() {alert('You are not authorized to delete this author. Please create your own author in order to delete.');}</script><body onload='myFunction()''>"
+	if request.method == 'POST':
+		session.delete(authorsToDelete)
+		flash('%s Successfully Deleted' % authorsToDelete.name)
+		session.commit()
+		return redirect(url_for('showAuthors', authors_id=authors_id))
+	else:
+		return render_template('delete_authors.html', authors=authorsToDelete)
 
 # Show a authors books
 @app.route('/authors/<int:authors_id>/')
@@ -234,62 +267,84 @@ def showBooks(authors_id):
 # Create a new books
 @app.route('/authors/<int:authors_id>/books/new/', methods=['GET', 'POST'])
 def newBook(authors_id):
-    if 'username' not in login_session:
-        return redirect('/login')
-    authors = session.query(Authors).filter_by(id=authors_id).one()
-    if request.method == 'POST':
-        newBook = Books(title=request.form['title'], cover_url=request.form['cover_url'],
+	if 'username' not in login_session:
+		return redirect('/login')
+	authors = session.query(Authors).filter_by(id=authors_id).one()
+	if authors.user_id != login_session['user_id']:
+		return "<script>function myFunction() {alert('You are not authorized to add a book to this author. Please create your own author in order to add a book.');}</script><body onload='myFunction()''>"
+	if request.method == 'POST':
+		newBook = Books(title=request.form['title'], cover_url=request.form['cover_url'],
 			isbn=request.form['isbn'], description=request.form['description'],
 			published_date=request.form['published_date'], authors_id=authors_id)
-        session.add(newBook)
-        session.commit()
-        flash('New Book %s Successfully Created' % (newBook.title))
-        return redirect(url_for('showBooks', authors_id=authors_id))
-    else:
-        return render_template('new_books.html', authors_id=authors_id)
+		session.add(newBook)
+		session.commit()
+		flash('New Book %s Successfully Created' % (newBook.title))
+		return redirect(url_for('showBooks', authors_id=authors_id))
+	else:
+		return render_template('new_books.html', authors_id=authors_id)
 
 # Edit a book
 @app.route('/authors/<int:authors_id>/books/<int:books_id>/edit', methods=['GET', 'POST'])
 def editBooks(authors_id, books_id):
-    if 'username' not in login_session:
-        return redirect('/login')
-    editedBooks = session.query(Books).filter_by(id=books_id).one()
-    authors = session.query(Authors).filter_by(id=authors_id).one()
-    if request.method == 'POST':
-	if request.form['title']:
-            editedItem.name = request.form['title']
-        if request.form['cover_url']:
-            editedItem.name = request.form['cover_url']
-	if request.form['isbn']:
-            editedItem.name = request.form['isbn']
-        if request.form['description']:
-            editedItem.description = request.form['description']
-	if request.form['published_date']:
-            editedItem.description = request.form['published_date']
-        session.add(editedBooks)
-        session.commit()
-        flash('Book Successfully Edited')
-        return redirect(url_for('showBooks', authors_id=authors_id))
-    else:
-        return render_template('edit_books.html', authors_id=authors_id, books_id=books_id, books=editedBooks)
+	if 'username' not in login_session:
+		return redirect('/login')
+	editedBooks = session.query(Books).filter_by(id=books_id).one()
+	authors = session.query(Authors).filter_by(id=authors_id).one()
+	if authors.user_id != login_session['user_id']:
+		return "<script>function myFunction() {alert('You are not authorized to edit a book from this author. Please create your own author in order to edit a book.');}</script><body onload='myFunction()''>"
+	if request.method == 'POST':
+		if request.form['title']:
+			editedItem.name = request.form['title']
+		if request.form['cover_url']:
+			editedItem.name = request.form['cover_url']
+		if request.form['isbn']:
+			editedItem.name = request.form['isbn']
+		if request.form['description']:
+			editedItem.description = request.form['description']
+		if request.form['published_date']:
+			editedItem.description = request.form['published_date']
+		session.add(editedBooks)
+		session.commit()
+		flash('Book Successfully Edited')
+		return redirect(url_for('showBooks', authors_id=authors_id))
+	else:
+		 return render_template('edit_books.html', authors_id=authors_id, books_id=books_id, books=editedBooks)
 
 
 # Delete a book
 @app.route('/authors/<int:authors_id>/books/<int:books_id>/delete', methods=['GET', 'POST'])
 def deleteBook(authors_id, books_id):
-    if 'username' not in login_session:
-        return redirect('/login')
-    authors = session.query(Authors).filter_by(id=authors_id).one()
-    bookToDelete = session.query(Books).filter_by(id=books_id).one()
-    if request.method == 'POST':
-        session.delete(bookToDelete)
-        session.commit()
-        flash('Book Successfully Deleted')
-        return redirect(url_for('showBooks', authors_id=authors_id))
+	if 'username' not in login_session:
+		return redirect('/login')
+	authors = session.query(Authors).filter_by(id=authors_id).one()
+	bookToDelete = session.query(Books).filter_by(id=books_id).one()
+	if authors.user_id != login_session['user_id']:
+		return "<script>function myFunction() {alert('You are not authorized to delete a book from this author. Please create your own author in order to delete a book.');}</script><body onload='myFunction()''>"
+	if request.method == 'POST':
+		session.delete(bookToDelete)
+		session.commit()
+		flash('Book Successfully Deleted')
+		return redirect(url_for('showBooks', authors_id=authors_id))
+	else:
+		return render_template('delete_books.html', books=bookToDelete)
+
+
+# Disconnect based on provider
+@app.route('/disconnect')
+def disconnect():
+    if 'username' in login_session:
+        del login_session['gplus_id']
+        del login_session['credentials']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        del login_session['user_id']
+        flash("You have successfully been logged out.")
+        return redirect(url_for('showRestaurants'))
     else:
-        return render_template('delete_books.html', books=bookToDelete)
-
-
+        flash("You were not logged in")
+        return redirect(url_for('showRestaurants'))
+		
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
