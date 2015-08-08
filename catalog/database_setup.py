@@ -11,7 +11,7 @@
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Date
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import create_engine
 
 Base = declarative_base()
@@ -32,7 +32,8 @@ class Authors(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user = relationship(User,
+	backref=backref('authors', cascade='delete,all'))
 
     @property
     def serialize(self):
@@ -53,9 +54,11 @@ class Books(Base):
     description = Column(String(2000))
     published_date = Column(String(9))
     authors_id = Column(Integer, ForeignKey('authors.id'))
-    authors = relationship(Authors)
+    authors = relationship(Authors,
+	backref=backref('books', cascade='delete,all'))
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user = relationship(User,
+	backref=backref('books', cascade='delete,all'))
 
     @property
     def serialize(self):
