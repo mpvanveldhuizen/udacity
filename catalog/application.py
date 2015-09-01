@@ -213,7 +213,7 @@ def showAuthors():
 	if 'username' not in login_session:
 		return render_template('application.html', authors=authors)
 	else:
-		return render_template('application.html', authors=authors, 
+		return render_template('application.html', authors=authors,
 							   username=login_session['username'])
 
 # Create a new author
@@ -222,14 +222,14 @@ def newAuthors():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newAuthors = Authors(name=request.form['name'], 
+        newAuthors = Authors(name=request.form['name'],
 							 user_id=login_session['user_id'])
         session.add(newAuthors)
         flash('New Author %s Successfully Created' % newAuthors.name)
         session.commit()
         return redirect(url_for('showAuthors'))
     else:
-        return render_template('new_authors.html', 
+        return render_template('new_authors.html',
 							   username=login_session['username'])
 
 # Edit an author
@@ -248,7 +248,7 @@ def editAuthors(authors_id):
 			flash('Author Successfully Edited %s' % editedAuthors.name)
 			return redirect(url_for('showAuthors'))
 	else:
-		return render_template('edit_authors.html', authors=editedAuthors, 
+		return render_template('edit_authors.html', authors=editedAuthors,
 							   username=login_session['username'])
 
 # Delete an author
@@ -267,7 +267,7 @@ def deleteAuthor(authors_id):
 		session.commit()
 		return redirect(url_for('showAuthors', authors_id=authors_id))
 	else:
-		return render_template('delete_authors.html', authors=authorsToDelete, 
+		return render_template('delete_authors.html', authors=authorsToDelete,
 							   username=login_session['username'])
 
 # Show an authors books
@@ -276,7 +276,10 @@ def deleteAuthor(authors_id):
 def showBooks(authors_id):
     authors = session.query(Authors).filter_by(id=authors_id).one()
     books = session.query(Books).filter_by(authors_id=authors_id).all()
-    return render_template('library.html', books=books, authors=authors, 
+    if 'username' not in login_session:
+		return render_template('library.html', books=books, authors=authors)
+    else:
+	    return render_template('library.html', books=books, authors=authors,
 						   username=login_session['username'])
 
 # Create a new book
@@ -290,22 +293,22 @@ def newBook(authors_id):
 			  your own author in order to add a book.")
 		return redirect(url_for('showBooks', authors_id=authors_id))
 	if request.method == 'POST':
-		newBook = Books(title=request.form['title'], 
+		newBook = Books(title=request.form['title'],
 						cover_url=request.form['cover_url'],
-						isbn=request.form['isbn'], 
+						isbn=request.form['isbn'],
 						description=request.form['description'],
-						published_date=request.form['published_date'], 
+						published_date=request.form['published_date'],
 						authors_id=authors_id, user_id=authors.user_id)
 		session.add(newBook)
 		session.commit()
 		flash('New Book %s Successfully Created' % (newBook.title))
 		return redirect(url_for('showBooks', authors_id=authors_id))
 	else:
-		return render_template('new_books.html', authors_id=authors_id, 
+		return render_template('new_books.html', authors_id=authors_id,
 							   username=login_session['username'])
 
 # Edit a book
-@app.route('/authors/<int:authors_id>/books/<int:books_id>/edit', 
+@app.route('/authors/<int:authors_id>/books/<int:books_id>/edit',
 		   methods=['GET', 'POST'])
 def editBooks(authors_id, books_id):
 	if 'username' not in login_session:
@@ -332,12 +335,12 @@ def editBooks(authors_id, books_id):
 		flash('Book Successfully Edited')
 		return redirect(url_for('showBooks', authors_id=authors_id))
 	else:
-		 return render_template('edit_books.html', authors_id=authors_id, 
-								books_id=books_id, books=editedBooks, 
+		 return render_template('edit_books.html', authors_id=authors_id,
+								books_id=books_id, books=editedBooks,
 								username=login_session['username'])
 
 # Delete a book
-@app.route('/authors/<int:authors_id>/books/<int:books_id>/delete', 
+@app.route('/authors/<int:authors_id>/books/<int:books_id>/delete',
 		   methods=['GET', 'POST'])
 def deleteBook(authors_id, books_id):
 	if 'username' not in login_session:
@@ -354,7 +357,7 @@ def deleteBook(authors_id, books_id):
 		flash('Book Successfully Deleted')
 		return redirect(url_for('showBooks', authors_id=authors_id))
 	else:
-		return render_template('delete_books.html', books=bookToDelete, 
+		return render_template('delete_books.html', books=bookToDelete,
 							   username=login_session['username'])
 
 # Disconnect based on provider
@@ -372,7 +375,7 @@ def disconnect():
     else:
         flash("You were not logged in")
         return redirect(url_for('showAuthors'))
-		
+
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
