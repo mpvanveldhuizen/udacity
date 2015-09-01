@@ -53,8 +53,8 @@ The `Profile` model was modified to accommodate a wishlist stored as a repeated 
 
 Two endpoint methods were added for additional queries that would be useful for this application:
 
--`getConferenceSessionFeed`: returns a conference's sorted feed sessions occurring same day or later.
--`getTBDSessions`: returns sessions missing time/date information.
+- `getConferenceSessionFeed`: returns a conference's sorted feed sessions occurring same day or later.
+- `getTBDSessions`: returns sessions missing time/date information.
 
 To implement the specialized query, finding non-workshop sessions before 7pm, was to first query sessions before 7pm with `ndb`, and then filter that list with Python to remove sessions with a 'workshop' type.
 
