@@ -1,0 +1,13 @@
+# Matt Van Veldhuizen
+# 08/06/2015
+# Udacity Full Stack Web Developer Nanodegree
+# Implementation of a Conference Organization App
+# providing a app to create, manage and join conferences
+# cron.yaml
+# This Yaml code was based of the implementation
+# by the teachers at Udacity.
+
+cron:
+- description: Repopulate the announcement every 1 hour
+  url: /crons/set_announcement
+  schedule: every 1 hours
