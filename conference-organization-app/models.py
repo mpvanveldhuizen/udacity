@@ -29,6 +29,19 @@ class ConflictException(endpoints.ServiceException):
     """ConflictException -- exception mapped to HTTP 409 response"""
     http_status = httplib.CONFLICT
 
+class Session(ndb.Model):
+    """Session -- Session object"""
+    _use_memcache   = True
+
+    name                    = ndb.StringProperty(required=True)
+    highlights              = ndb.StringProperty()
+    speaker                 = ndb.StringProperty(required=True)
+    duration                = ndb.IntegerProperty() # in minutes
+    typeOfSession           = ndb.StringProperty(repeated=True)
+    date                    = ndb.DateProperty()
+    startTime               = ndb.TimeProperty() # 24hr notation
+    organizerUserId         = ndb.StringProperty()
+
 class Profile(ndb.Model):
     """Profile -- User profile object"""
     displayName = ndb.StringProperty()
@@ -120,19 +133,6 @@ class ConferenceQueryForm(messages.Message):
 class ConferenceQueryForms(messages.Message):
     """ConferenceQueryForms -- multiple ConferenceQueryForm inbound form message"""
     filters = messages.MessageField(ConferenceQueryForm, 1, repeated=True)
-
-class Session(ndb.Model):
-    """Session -- Session object"""
-    _use_memcache   = True
-
-    name                    = ndb.StringProperty(required=True)
-    highlights              = ndb.StringProperty()
-    speaker                 = ndb.StringProperty(required=True)
-    duration                = ndb.IntegerProperty() # in minutes
-    typeOfSession           = ndb.StringProperty(repeated=True)
-    date                    = ndb.DateProperty()
-    startTime               = ndb.TimeProperty() # 24hr notation
-    organizerUserId         = ndb.StringProperty()
 
 class SessionForm(messages.Message):
     """SessionForm -- Session outbound form message"""
