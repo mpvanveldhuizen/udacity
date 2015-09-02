@@ -49,6 +49,12 @@ handlers:       # static then dynamic
   script: conference.api
   secure: always
 
+- url: /crons/check_featured_speaker
+  script: main.app
+
+- url: /tasks/check_featured_speaker
+  script: main.app
+
 libraries:
 
 - name: webapp2

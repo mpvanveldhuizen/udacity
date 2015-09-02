@@ -56,7 +56,7 @@ Two endpoint methods were added for additional queries that would be useful for 
 - `getConferenceSessionFeed`: returns a conference's sorted feed sessions occurring same day or later.
 - `getTBDSessions`: returns sessions missing time/date information.
 
-To implement the specialized query, finding non-workshop sessions before 7pm, was to first query sessions before 7pm with `ndb`, and then filter that list with Python to remove sessions with a 'workshop' type.
+For the specialized query, finding non-workshop sessions before 7pm, I ran into the limitations with using ndb/Datastore queries. Queries are only allowed to have one inequality filter, and it would cause a `BadRequestError` to filter on both `startDate` and `typeOfSession`. To accomplish this was to first query sessions before 7pm with `ndb`, and then manually filter that list within my Python app to remove sessions with a 'workshop' type. This could have been done in reverse, and the query which would filter the most entities should be done with `ndb`.
 
 #### Task 4: Add Featured Speaker
 

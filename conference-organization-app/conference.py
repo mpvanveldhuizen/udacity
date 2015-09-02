@@ -29,30 +29,13 @@ from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
-from models import ConflictException
-from models import Profile
-from models import ProfileMiniForm
-from models import ProfileForm
-from models import StringMessage
-from models import BooleanMessage
-from models import Conference
-from models import ConferenceForm
-from models import ConferenceForms
-from models import ConferenceQueryForm
-from models import ConferenceQueryForms
-from models import TeeShirtSize
-from models import Session
-from models import SessionForm
-from models import SessionForms
-from models import SpeakerForm
-from settings import WEB_CLIENT_ID
-from settings import ANDROID_CLIENT_ID
-from settings import IOS_CLIENT_ID
-from settings import ANDROID_AUDIENCE
+from models import *
+from settings import *
 from utils import getUserId
 
 EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
+MEMCACHE_FEATURED_SPEAKER_KEY = "FEATURED_SPEAKER"
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
 ANNOUNCEMENT_TPL = ('Last chance to attend! The following conferences '
                     'are nearly sold out: %s')
@@ -437,7 +420,6 @@ class ConferenceApi(remote.Service):
 
         # copy SessionForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
-
         # convert dates from strings to Date objects
         if data['date']:
             data['date'] = datetime.strptime(data['date'][:10], "%Y-%m-%d").date()
@@ -457,16 +439,11 @@ class ConferenceApi(remote.Service):
 
         Session(**data).put()
 
-        # check if speaker exists in other sections; if so, add to memcache
-        sessions = Session.query(Session.speaker == data['speaker'],
-            ancestor=p_key)
-        if len(list(sessions)) > 1:
-            cache_data = {}
-            cache_data['speaker'] = data['speaker']
-            # cache_data['sessions'] = sessions # TODO: get pickler to load full properties...
-            cache_data['sessionNames'] = [session.name for session in sessions]
-            if not memcache.set('featured_speaker', cache_data):
-                logging.error('Memcache set failed.')
+        # This task wil send a confirmation email to the owner 
+        taskqueue.add(params={'email': user.email(),
+            'conferenceInfo': repr(request)},
+            url='/tasks/send_confirmation_session_email'
+        )
 
         return request
 
@@ -536,40 +513,6 @@ class ConferenceApi(remote.Service):
         return SessionForms(
             items=[self._copySessionToForm(session) for session in filtered_sessions]
         )
-
-    @endpoints.method(message_types.VoidMessage, SpeakerForm,
-            http_method='GET', name='getFeaturedSpeaker')
-    def getFeaturedSpeaker(self, request):
-        """Returns the sessions of the featured speaker"""
-        # attempt to get data from memcache
-        data = memcache.get('featured_speaker')
-        from pprint import pprint
-        pprint(data)
-        sessions = []
-        sessionNames = []
-        speaker = None
-
-        if data and data.has_key('speaker') and data.has_key('sessionNames'):
-            speaker = data['speaker']
-            sessionNames = data['sessionNames']
-        # if memcache fails or is empty, pull speaker from upcoming session
-        else:
-            upcoming_session = Session.query(Session.date >= datetime.now())\
-                               .order(Session.date, Session.startTime).get()
-            if upcoming_session:
-                speaker = upcoming_session.speaker
-                sessions = Session.query(Session.speaker == speaker)
-                sessionNames = [session.name for session in sessions]
-
-        # populate speaker form
-        sf = SpeakerForm()
-        for field in sf.all_fields():
-            if field.name == 'sessionNames':
-                setattr(sf, field.name, sessionNames)
-            elif field.name == 'speaker':
-                setattr(sf, field.name, speaker)
-        sf.check_initialized()
-        return sf
 
 # - - - Profile objects - - - - - - - - - - - - - - - - - - -
 
@@ -809,5 +752,31 @@ class ConferenceApi(remote.Service):
     def unregisterFromConference(self, request):
         """Unregister user for selected conference."""
         return self._conferenceRegistration(request, reg=False)
+
+    @endpoints.method(message_types.VoidMessage, StringMessage,
+                      path='speaker/get_features',
+                      http_method='GET', name='getFeaturedSpeaker')
+    def getFeaturedSpeaker(self, request):
+        """Get all featured speakers and return json data"""
+        return StringMessage(data=memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY) or "")
+		
+    @staticmethod
+    def _cacheFeaturedSpeaker():
+        """Get Featured Speaker & assign to memcache;"""
+        sessions = Session.query()
+        speakersCounter = {}
+        featured_speaker = ""
+        num = 0
+        for session in sessions:
+            if session.speaker:
+                if session.speaker not in speakersCounter:
+                    speakersCounter[session.speaker] = 1
+                else:
+                    speakersCounter[session.speaker] += 1
+                if speakersCounter[session.speaker] > num:
+                    featured_speaker = session.speaker
+                    num = speakersCounter[session.speaker] 
+        memcache.set(MEMCACHE_FEATURED_SPEAKER_KEY, featured_speaker)
+        return featured_speaker
 
 api = endpoints.api_server([ConferenceApi]) # register API
