@@ -1,6 +1,6 @@
 # Item Catalog
 ### About
-Project 2 of Udacity's Full Stack Web Developer Nanodegree consisting of an implementation of a Catalog based Website providing a list of Authors and Books. Where I developed an application that provides a list of items (in my case Books) within a variety of categories (in my case Authros) as well as provide a user registration and authentication system. Registered users have the ability to post, edit and delete their own items.
+Project 3 of Udacity's Full Stack Web Developer Nanodegree consisting of an implementation of a Catalog based Website providing a list of Authors and Books. Where I developed an application that provides a list of items (in my case Books) within a variety of categories (in my case Authros) as well as provide a user registration and authentication system. Registered users have the ability to post, edit and delete their own items.
 
 ### Setup Instructions
 This will describe how to generate the "Library Catalog" web page using Python.
