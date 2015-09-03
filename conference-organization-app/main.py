@@ -25,17 +25,20 @@ from google.appengine.api import app_identity
 from google.appengine.api import mail
 from conference import ConferenceApi
 
+
 class SetAnnouncementHandler(webapp2.RequestHandler):
     def get(self):
         """Set Announcement in Memcache."""
         ConferenceApi._cacheAnnouncement()
         self.response.set_status(204)
 
+
 class CheckFeaturedSpeakerHandler(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         """Set FeaturedSpeaker in Memcache."""
-        ConferenceApi._cacheFeaturedSpeaker()
+        ConferenceApi._cacheFeaturedSpeaker(self.request.get('speaker'))
         self.response.set_status(204)
+
 
 class SendConfirmationEmailHandler(webapp2.RequestHandler):
     def post(self):
@@ -53,5 +56,5 @@ class SendConfirmationEmailHandler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/crons/set_announcement', SetAnnouncementHandler),
     ('/tasks/send_confirmation_email', SendConfirmationEmailHandler),
-    ('/crons/check_featured_speaker', CheckFeaturedSpeakerHandler),
+    ('/tasks/check_featured_speaker', CheckFeaturedSpeakerHandler),
 ], debug=True)

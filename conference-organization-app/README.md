@@ -23,7 +23,7 @@ The following endpoint methods were added:
 - `getConferenceSessionsByType`: given a conference and session type, returns all applicable sessions.
 - `getSessionsBySpeaker`: given a speaker, returns all sessions across all conferences.
 
-The `Speaker` model design, was implemented using the following datastore properties:
+The `Session` model design, was implemented using the following datastore properties:
 
 | Property        | Type             |
 |-----------------|------------------|
